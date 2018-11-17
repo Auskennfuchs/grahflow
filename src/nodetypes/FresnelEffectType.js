@@ -13,7 +13,7 @@ export default {
                 default: { x: 0.0, y: 0.0, z: 0.0 },
             },
             power: {
-                name: "Power sfsdf dssdfas df",
+                name: "Power",
                 type: "BigDecimal",
                 default: 1.0,
             },

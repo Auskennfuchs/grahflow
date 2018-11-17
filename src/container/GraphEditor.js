@@ -1,9 +1,9 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
 import GridBackground from '../components/GridBackground'
-import GraphNode from '../components/GraphNode'
-import PropertyContainer, { InputPropertyContainer, OutputPropertyContainer } from '../components/PropertyContainer'
-import FresnelEffect from '../components/FresnelEffect';
+import FresnelEffect from '../components/FresnelEffect'
+import Draggable from '../components/Draggable'
+import LineContainer from '../elements/LineContainer'
 
 const EditorWrapper = styled.div`
     height: 100%;
@@ -30,11 +30,87 @@ const EditorCanvas = styled.div`
 export default class GraphEditor extends Component {
 
     state = {
-        selected: undefined
+        selected: undefined,
+        elements: [
+            {
+                id: 1,
+                type: "fresnelEffect",
+                x: 0 * 50,
+                y: 0 * 50,
+                properties: {
+                    input: {
+                        normal: {
+                            name: "Normal",
+                            type: "Vector3",
+                            default: { x: 0.0, y: 0.0, z: 0.0 },
+                        },
+                        viewDir: {
+                            name: "View Dir",
+                            type: "Vector3",
+                            default: { x: 0.0, y: 0.0, z: 0.0 },
+                        },
+                        power: {
+                            name: "Power",
+                            type: "BigDecimal",
+                            default: 1.0,
+                        },
+                    },
+                    output: {
+                        out: {
+                            name: "Out",
+                            type: "BigDecimal",
+                            default: 0.0,
+                        },
+                    },
+                }
+            },
+            {
+                id: 2,
+                type: "fresnelEffect",
+                x: 15 * 50,
+                y: 8 * 50,
+                input: {
+                    normal: {
+                        name: "Normal",
+                        type: "Vector3",
+                        default: { x: 0.0, y: 0.0, z: 0.0 },
+                    },
+                    viewDir: {
+                        name: "View Dir",
+                        type: "Vector3",
+                        default: { x: 0.0, y: 0.0, z: 0.0 },
+                    },
+                    power: {
+                        name: "Power",
+                        type: "BigDecimal",
+                        default: 1.0,
+                        connection: "1.output.out",
+                    },
+                },
+                output: {
+                    out: {
+                        name: "Out",
+                        type: "BigDecimal",
+                        default: 0.0,
+                    },
+                },
+            },
+        ],
+    }
+
+    types = {
+        fresnelEffect: FresnelEffect,
+    }
+
+    componentDidMount = () => {
+        window.addEventListener('mouseup', this.onClickCanvas)
+    }
+
+    componentWillMount = () => {
+        window.removeEventListener('mouseup', this.onClickCanvas)
     }
 
     onSelectElement = (selected) => {
-        console.log("click", selected)
         this.setState({
             selected
         })
@@ -42,33 +118,49 @@ export default class GraphEditor extends Component {
     }
 
     onClickCanvas = () => {
-        console.log("canvas")
         this.setState({
             selected: undefined
         })
     }
 
-    render() {
+    onDragEnd = (id, e) => {
+        const { elements } = this.state
+        const selElement = elements[elements.findIndex(el => el.id === id)]
+        if (selElement) {
+            selElement.x = e.x//Math.floor(e.x / 25) * 25
+            selElement.y = e.y//Math.floor(e.y / 25) * 25
+            this.setState({
+                elements
+            })
+        }
+    }
+
+    renderElement = (element) => {
         const { selected } = this.state
+        const { id, x, y } = element
+        const TagName = this.types[element.type]
+        return (
+            <Draggable key={id} initialPos={{ x, y }} onDragEnd={(e) => this.onDragEnd(id, e)}>
+                <TagName active={selected === id} id={id} onMouseDown={() => this.onSelectElement(id)} />
+            </Draggable>
+        )
+    }
+
+    render() {
+        const { elements } = this.state
         return (
             <EditorWrapper>
                 <EditorContainer style={{ width: "3000px", height: "2000px" }}>
                     <GridBackground />
                     <EditorCanvas onClick={this.onClickCanvas}>
-                        <GraphNode active title="Multiply">
-                            <PropertyContainer>
-                                <InputPropertyContainer>
-                                    Input
-                                </InputPropertyContainer>
-                                <OutputPropertyContainer>
-                                    Output
-                                </OutputPropertyContainer>
-                            </PropertyContainer>
-                        </GraphNode>
-                        <FresnelEffect x={6} y={6} active={selected === 1} id={1} onClick={this.onSelectElement} />
+                        <LineContainer />
+                        {elements.map(elem => this.renderElement(elem))}
                     </EditorCanvas>
                 </EditorContainer>
             </EditorWrapper>
         )
     }
 }
+
+
+//                            <rect x={6} y={55} width={150} height={150} style={{ fill: "blue", stroke: "pink", strokeWidth: 5, fillOpacity: 0.1, strokeOpacity: 0.9 }} />
