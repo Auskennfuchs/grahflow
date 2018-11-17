@@ -6,6 +6,7 @@ export default class Draggable extends Component {
 
     static defaultProps = {
         initialPos: { x: 0, y: 0 },
+        onDragMove: () => { },
         onDragEnd: () => { },
         ref: () => { },
     }
@@ -56,7 +57,7 @@ export default class Draggable extends Component {
         this.props.onDragEnd(this.state.pos)
     }
 
-    debouncedMouseMove = throttle((pos) => this.props.onDragEnd(pos),50)
+    debouncedMouseMove = throttle((pos) => this.props.onDragMove(pos), 50)
 
     onMouseMove = (e) => {
         if (!this.state.dragging) return
@@ -73,7 +74,7 @@ export default class Draggable extends Component {
     }
 
     render() {
-        const { onMouseDown, children, initialPos, style, ref, ...rest } = this.props
+        const { onMouseDown, onDragEnd, onDragMove, children, initialPos, style, ref, ...rest } = this.props
         return (
             <div style={{
                 ...style,

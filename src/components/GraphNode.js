@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import styled, { css } from 'styled-components'
+import PropertyContainer, { PropertyElement, PropertyConnector, InputPropertyContainer, OutputPropertyContainer } from './PropertyContainer'
+import { mapObject } from '../util/util'
 
 const StyledWrapper = styled.div`
     padding: 2px;
@@ -37,6 +39,25 @@ const Title = styled.div`
     border-bottom: 2px solid #222;
 `
 
+const propSize = (o) => Object.keys(o).length
+
+const mapProperties = (PropContainer) => (
+    ({ properties, rightAlign, connectorRef = () => { }, parentId, onConnectorMouseDown = () => { } }) => (
+        <PropContainer>
+            {mapObject(properties, ({ name, type }, id) => (
+                <PropertyElement key={id}>
+                    {!rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} />}
+                    <span>{name}({type})</span>
+                    {rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} />}
+                </PropertyElement>
+            ))}
+        </PropContainer>
+    )
+)
+
+const InputProps = mapProperties(InputPropertyContainer)
+const OutputProps = mapProperties(OutputPropertyContainer)
+
 export default class GraphNode extends Component {
 
     state = {
@@ -48,13 +69,22 @@ export default class GraphNode extends Component {
     }
 
     render() {
-        const { active, x, y, title, children,...rest } = this.props
+        const { active, title, children, element, id, onConnectorMouseDown, onConnectorMouseUp, ...rest } = this.props
         const { hover } = this.state
+        const { input, output } = element.properties
         return (
             <StyledWrapper active={active} hover={hover}
                 onMouseEnter={() => this.setHover(true)} onMouseLeave={() => this.setHover(false)} {...rest}>
                 <StyledContainer>
                     <Title>{title}</Title>
+                    <PropertyContainer>
+                        {input && propSize(input) > 0 &&
+                            <InputProps properties={input} parentId={`${id}.input`} onConnectorMouseDown={onConnectorMouseDown} />
+                        }
+                        {output && propSize(output) > 0 &&
+                            <OutputProps properties={output} rightAlign parentId={`${id}.output`} onConnectorMouseDown={onConnectorMouseDown}/>
+                        }
+                    </PropertyContainer>
                     {children}
                 </StyledContainer>
             </StyledWrapper>

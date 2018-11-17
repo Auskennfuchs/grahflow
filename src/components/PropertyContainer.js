@@ -63,8 +63,17 @@ const StyledPropertyConnectorWrapper = styled.div`
 `
 
 class CPropertyConnector extends Component {
+
+    static defaultProps = {
+        onMouseEnter: () => { },
+        onMouseLeave: () => { },
+        onClick: () => { },
+        onMouseDown: () => { },
+        onMouseUp: () => { },
+    }
+
     state = {
-        hover: false
+        hover: false,
     }
 
     bounds = {}
@@ -108,27 +117,60 @@ class CPropertyConnector extends Component {
         }
     }
 
+    onMouseEnter = (e) => {
+        e.persist()
+        this.setHover(true)
+        this.props.onMouseEnter(e)
+    }
+
+    onMouseLeave = (e) => {
+        e.persist()
+        this.setHover(false)
+        this.props.onMouseLeave(e)
+    }
+
+    onClick = (e) => {
+        e.persist()
+        e.stopPropagation()
+        e.preventDefault()
+        this.props.onClick(e)
+    }
+
+    onMouseDown = (e) => {
+        e.persist()
+        e.stopPropagation()
+        e.preventDefault()
+        this.props.onMouseDown(e)
+    }
+
+    onMouseUp = (e) => {
+        e.persist()
+        e.stopPropagation()
+        e.preventDefault()
+        this.props.onMouseUp(e)
+    }
+
     updateConnectorInStore = (bounds) => {
         const { setConnector, id } = this.props
         setConnector({ id, bounds })
     }
 
     render() {
-        const { onMouseEnter, onMouseOut, innerRef, ...rest } = this.props
+        const { onMouseEnter, onMouseOut, onMouseDown, onMouseUp, onClick, innerRef, ...rest } = this.props
         const { hover } = this.state
         return (
-            <StyledPropertyConnectorWrapper {...rest} onMouseEnter={() => this.setHover(true)} onMouseLeave={() => this.setHover(false)}>
+            <StyledPropertyConnectorWrapper {...rest} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp}>
                 <StyledPropertyConnector hover={hover} ref={(ref) => { this.ref = ref }} />
             </StyledPropertyConnectorWrapper>
         )
     }
 }
 
-const mapProps = (dispatch) => ({
+const mapDispatch = (dispatch) => ({
     setConnector: (data) => dispatch(setConnector(data))
 })
 
-export const PropertyConnector = connect(null, mapProps)(CPropertyConnector)
+export const PropertyConnector = connect(null, mapDispatch)(CPropertyConnector)
 
 export const PropertyElement = styled.div`
     padding: 0.5em 0;

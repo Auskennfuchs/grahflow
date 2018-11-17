@@ -1,5 +1,6 @@
 export default {
     name: "Fresnel Effect",
+    type: "fresnelEffect",
     properties: {
         input: {
             normal: {
