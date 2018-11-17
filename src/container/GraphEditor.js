@@ -4,12 +4,15 @@ import { connect } from 'react-redux'
 import uuid from 'uuid/v4'
 import cloneDeep from 'lodash/cloneDeep'
 import GridBackground from '../components/GridBackground'
-import FresnelEffect from '../components/FresnelEffect'
+import FresnelEffect from '../nodes/FresnelEffect'
 import Draggable from '../components/Draggable'
 import LineContainer from '../elements/LineContainer'
 import { addNode, updateNode, deleteNode } from '../redux/actions/nodes'
 import fresnelTemplate from '../nodetypes/FresnelEffectType'
-import { setConnection } from '../redux/actions/connection';
+import multiplyTemplate from '../nodetypes/MultiplyType'
+import { setConnection, removeConnection } from '../redux/actions/connection'
+import { removeConnectors } from '../redux/actions/connectors'
+import Multiply from '../nodes/Multiply'
 
 const EditorWrapper = styled.div`
     height: 100%;
@@ -37,76 +40,12 @@ class GraphEditor extends Component {
 
     state = {
         selected: undefined,
-        elements: [
-            {
-                id: 1,
-                type: "fresnelEffect",
-                x: 0 * 50,
-                y: 0 * 50,
-                properties: {
-                    input: {
-                        normal: {
-                            name: "Normal",
-                            type: "Vector3",
-                            default: { x: 0.0, y: 0.0, z: 0.0 },
-                        },
-                        viewDir: {
-                            name: "View Dir",
-                            type: "Vector3",
-                            default: { x: 0.0, y: 0.0, z: 0.0 },
-                        },
-                        power: {
-                            name: "Power",
-                            type: "BigDecimal",
-                            default: 1.0,
-                        },
-                    },
-                    output: {
-                        out: {
-                            name: "Out",
-                            type: "BigDecimal",
-                            default: 0.0,
-                        },
-                    },
-                }
-            },
-            {
-                id: 2,
-                type: "fresnelEffect",
-                x: 15 * 50,
-                y: 8 * 50,
-                input: {
-                    normal: {
-                        name: "Normal",
-                        type: "Vector3",
-                        default: { x: 0.0, y: 0.0, z: 0.0 },
-                    },
-                    viewDir: {
-                        name: "View Dir",
-                        type: "Vector3",
-                        default: { x: 0.0, y: 0.0, z: 0.0 },
-                    },
-                    power: {
-                        name: "Power",
-                        type: "BigDecimal",
-                        default: 1.0,
-                        connection: "1.output.out",
-                    },
-                },
-                output: {
-                    out: {
-                        name: "Out",
-                        type: "BigDecimal",
-                        default: 0.0,
-                    },
-                },
-            },
-        ],
         connectionStart: undefined
     }
 
     types = {
         fresnelEffect: FresnelEffect,
+        multiply: Multiply,
     }
 
     componentDidMount = () => {
@@ -150,8 +89,7 @@ class GraphEditor extends Component {
     }
 
     updateNodePosition = (id, { x, y }) => {
-        const { nodes } = this.props
-        const selNode = nodes[nodes.findIndex(n => n.id === id)]
+        const selNode = this.findNode(id)
         if (selNode) {
             selNode.x = x//Math.floor(e.x / 25) * 25
             selNode.y = y//Math.floor(e.y / 25) * 25
@@ -184,7 +122,7 @@ class GraphEditor extends Component {
         const node = {
             id: uuid(),
             x, y,
-            ...cloneDeep(fresnelTemplate)
+            ...cloneDeep(multiplyTemplate)
         }
         this.props.addNode(node)
     }
@@ -193,8 +131,22 @@ class GraphEditor extends Component {
         const { selected } = this.state
         if (selected) {
             if (e.keyCode === 46) {
-                this.props.deleteNode(selected)
+                this.deleteNode(selected)
             }
+        }
+    }
+
+    findNode = (id) => {
+        const { nodes } = this.props
+        return nodes[nodes.findIndex(n => n.id === id)]
+    }
+
+    deleteNode = (id) => {
+        const node = this.findNode(id)
+        if (node) {
+            this.props.deleteNode(id)
+            this.props.removeConnections(node)
+            this.props.removeConnectors(node)
         }
     }
 
@@ -220,7 +172,9 @@ const mapDispatch = (dispatch) => ({
     addNode: (node) => dispatch(addNode(node)),
     updateNode: (node) => dispatch(updateNode(node)),
     deleteNode: (id) => dispatch(deleteNode(id)),
-    createConnection: (from, to) => dispatch(setConnection(from, to))
+    createConnection: (from, to) => dispatch(setConnection(from, to)),
+    removeConnections: (node) => dispatch(removeConnection(node)),
+    removeConnectors: (node) => dispatch(removeConnectors(node))
 })
 
 export default connect(mapState, mapDispatch)(GraphEditor)

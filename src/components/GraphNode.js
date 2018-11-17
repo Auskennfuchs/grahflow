@@ -60,6 +60,10 @@ const OutputProps = mapProperties(OutputPropertyContainer)
 
 export default class GraphNode extends Component {
 
+    static defaultProps = {
+        onClick: () => { }
+    }
+
     state = {
         hover: false,
     }
@@ -68,13 +72,19 @@ export default class GraphNode extends Component {
         this.setState({ hover })
     }
 
+    onClick = (e) => {
+        e.persist()
+        e.stopPropagation()
+        this.props.onClick(e)
+    }
+
     render() {
-        const { active, title, children, element, id, onConnectorMouseDown, onConnectorMouseUp, ...rest } = this.props
+        const { active, title, children, element, id, onClick, onConnectorMouseDown, onConnectorMouseUp, ...rest } = this.props
         const { hover } = this.state
         const { input, output } = element.properties
         return (
             <StyledWrapper active={active} hover={hover}
-                onMouseEnter={() => this.setHover(true)} onMouseLeave={() => this.setHover(false)} {...rest}>
+                onMouseEnter={() => this.setHover(true)} onMouseLeave={() => this.setHover(false)} onClick={this.onClick} {...rest}>
                 <StyledContainer>
                     <Title>{title}</Title>
                     <PropertyContainer>
@@ -82,7 +92,7 @@ export default class GraphNode extends Component {
                             <InputProps properties={input} parentId={`${id}.input`} onConnectorMouseDown={onConnectorMouseDown} />
                         }
                         {output && propSize(output) > 0 &&
-                            <OutputProps properties={output} rightAlign parentId={`${id}.output`} onConnectorMouseDown={onConnectorMouseDown}/>
+                            <OutputProps properties={output} rightAlign parentId={`${id}.output`} onConnectorMouseDown={onConnectorMouseDown} />
                         }
                     </PropertyContainer>
                     {children}
