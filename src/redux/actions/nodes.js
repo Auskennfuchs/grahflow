@@ -12,7 +12,7 @@ export const updateNode = (node) => ({
     node
 })
 
-export const deleteNode = (id) => ({
+export const deleteNode = (node) => ({
     type: DELETE_NODE,
-    id
+    node
 })

@@ -28,7 +28,6 @@ const StyledContainer = styled.div`
     border-radius: 3px;
     color: #C1C1C1;
     font-size: 12px;
-    overflow: hidden;
 `
 
 const Title = styled.div`
@@ -39,16 +38,47 @@ const Title = styled.div`
     border-bottom: 2px solid #222;
 `
 
+const ChildContainer = styled.div`
+    width: 100%;
+    background-color: #191919;
+`
+
+const DefaultValueContainer = styled.div`
+    position: absolute;
+    background-color: #393939;
+    left: -10px;
+    top: 0;
+    margin-top: 0.25em;
+    padding: 0.25em 0.5em;
+    transform: translateX(-100%);
+
+    &::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 2px;
+        right: -20px;
+        top: 0;
+        background-color: #f00;
+        margin-top: 0.75em;    
+    }
+`
+
 const propSize = (o) => Object.keys(o).length
 
 const mapProperties = (PropContainer) => (
     ({ properties, rightAlign, connectorRef = () => { }, parentId, onConnectorMouseDown = () => { } }) => (
         <PropContainer>
-            {mapObject(properties, ({ name, type }, id) => (
+            {mapObject(properties, ({ name, type, connections, ["default"]: defaultValue }, id) => (
                 <PropertyElement key={id}>
-                    {!rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} />}
+                    {defaultValue !== undefined && (!connections || connections.length === 0) &&
+                        <DefaultValueContainer>
+                            {defaultValue}
+                        </DefaultValueContainer>
+                    }
+                    {!rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} connections={connections} />}
                     <span>{name}({type})</span>
-                    {rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} />}
+                    {rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} connections={connections} />}
                 </PropertyElement>
             ))}
         </PropContainer>
@@ -79,14 +109,14 @@ export default class GraphNode extends Component {
     }
 
     render() {
-        const { active, title, children, element, id, onClick, onConnectorMouseDown, onConnectorMouseUp, ...rest } = this.props
+        const { active, children, element, id, onClick, onConnectorMouseDown, onConnectorMouseUp, ...rest } = this.props
         const { hover } = this.state
         const { input, output } = element.properties
         return (
             <StyledWrapper active={active} hover={hover}
                 onMouseEnter={() => this.setHover(true)} onMouseLeave={() => this.setHover(false)} onClick={this.onClick} {...rest}>
                 <StyledContainer>
-                    <Title>{title}</Title>
+                    <Title>{element.name}</Title>
                     <PropertyContainer>
                         {input && propSize(input) > 0 &&
                             <InputProps properties={input} parentId={`${id}.input`} onConnectorMouseDown={onConnectorMouseDown} />
@@ -95,7 +125,11 @@ export default class GraphNode extends Component {
                             <OutputProps properties={output} rightAlign parentId={`${id}.output`} onConnectorMouseDown={onConnectorMouseDown} />
                         }
                     </PropertyContainer>
-                    {children}
+                    {children &&
+                        <ChildContainer>
+                            {children}
+                        </ChildContainer>
+                    }
                 </StyledContainer>
             </StyledWrapper>
         )

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
 import Line from './Line'
+import { mapObject } from '../util/util';
 
 const StyledLineContainer = styled.svg`
     position: absolute;
@@ -30,7 +31,7 @@ class LineContainer extends Component {
         }
     }
 
-    drawLine = (fromId, toId) => {
+    drawLine = (fromId, toId, id) => {
         const { connectors } = this.props
         const from = connectors[`${fromId}.connector`]
         const to = connectors[`${toId}.connector`]
@@ -38,21 +39,19 @@ class LineContainer extends Component {
             const start = this.calcCenter(from)
             const end = this.calcCenter(to)
             return (
-                <Line start={start} end={end} color="rgb(241,250,151)" />
+                <Line key={id} start={start} end={end} color="rgb(241,250,151)" />
             )
         }
         return null
     }
 
     render() {
-        const { connections, children } = this.props
+        const { connections, children, ...rest } = this.props
         return (
-            <StyledLineContainer>
-                {connections.map((con, id) => (
-                    <React.Fragment key={id}>
-                        {this.drawLine(con.from, con.to)}
-                    </React.Fragment>
-                ))}
+            <StyledLineContainer {...rest}>
+                {mapObject(connections, (({ to, from }, id) => (
+                    this.drawLine(from, to, id)
+                )))}
                 {children}
             </StyledLineContainer>
         )

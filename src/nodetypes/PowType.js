@@ -1,17 +1,17 @@
 export default {
-    name: "Multiply",
-    type: "multiply",
+    name: "Power x^y",
+    type: "powxy",
     properties: {
         input: {
-            a: {
-                name: "a",
+            base: {
+                name: "base",
                 type: "BigDecimal",
                 default: 0.0,
             },
-            b: {
-                name: "b",
+            exp: {
+                name: "exponent",
                 type: "BigDecimal",
-                default: 0.0,
+                default: 1.0,
             },
         },
         output: {

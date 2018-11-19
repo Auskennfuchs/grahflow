@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
-import throttle from 'lodash/throttle'
+import debounce from 'lodash/debounce'
 
 export default class Draggable extends Component {
 
@@ -57,7 +57,7 @@ export default class Draggable extends Component {
         this.props.onDragEnd(this.state.pos)
     }
 
-    debouncedMouseMove = throttle((pos) => this.props.onDragMove(pos), 50)
+    debouncedMouseMove = debounce((pos) => this.props.onDragMove(pos), 100)
 
     onMouseMove = (e) => {
         if (!this.state.dragging) return
@@ -80,7 +80,7 @@ export default class Draggable extends Component {
                 ...style,
                 position: "absolute",
                 left: this.state.pos.x + 'px',
-                top: this.state.pos.y + 'px'
+                top: this.state.pos.y + 'px',
             }} {...rest} onMouseDown={this.onMouseDown} ref={ref}>
                 {children}
             </div>

@@ -1,31 +1,31 @@
 import { ADD_NODE, UPDATE_NODE, DELETE_NODE } from "../actions/nodes"
+import { mapObject } from "../../util/util"
 
-const initialState = []
+const initialState = {}
 
 export default (state = initialState, action = {}) => {
     switch (action.type) {
         case ADD_NODE:
-            return [
+            return {
                 ...state,
-                action.node,
-            ]
-        case UPDATE_NODE: {
-            const idx = state.findIndex(n => n.id === action.node.id)
-            if (idx !== -1) {
-                const newState = [...state]
-                newState.splice(idx, 1, action.node)
-                return newState
+                [action.node.id]: action.node
             }
-            break;
+        case UPDATE_NODE: {
+            return {
+                ...state,
+                [action.node.id]: action.node
+            }
         }
         case DELETE_NODE: {
-            const idx = state.findIndex(n => n.id === action.id)
-            if (idx !== -1) {
-                const newState = [...state]
-                newState.splice(idx, 1)
-                return newState
-            }
-            break;
+            mapObject(state, (node) => {
+                mapObject(node.properties, (propList) => {
+                    mapObject(propList, (prop) => {
+                        prop.connections = (prop.connections || []).filter(p => !p.includes(action.node.id))
+                    })
+                })
+            })
+            const { [action.node.id]: deleteNode, ...rest } = state
+            return rest
         }
         default:
             break

@@ -23,7 +23,6 @@ export default {
             out: {
                 name: "Out",
                 type: "BigDecimal",
-                default: 0.0,
             },
         }
     }

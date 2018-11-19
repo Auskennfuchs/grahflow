@@ -1,6 +1,6 @@
 export default {
-    name: "Multiply",
-    type: "multiply",
+    name: "Add",
+    type: "add",
     properties: {
         input: {
             a: {

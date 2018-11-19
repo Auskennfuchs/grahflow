@@ -3,11 +3,12 @@ import styled, { css } from 'styled-components'
 import isEqual from 'lodash/isEqualWith'
 import { connect } from 'react-redux'
 import { setConnector } from '../redux/actions/connectors';
+import { getOffset } from '../util/util';
 
 const PropertyContainer = styled.div`
     display: flex;
     justify-content: space-between;
-    
+
     & > * {
         border-left: 1px solid #222;
 
@@ -42,7 +43,7 @@ const StyledPropertyConnector = styled.div`
     position: relative;
     box-sizing:content-box;
 
-    ${({ hover }) => hover ? css`&:after {
+    ${({ hover, connections }) => (hover || connections) ? css`&:after {
         content: '';
         position: absolute;
         width: 6px;
@@ -80,20 +81,9 @@ class CPropertyConnector extends Component {
 
     setHover = (hover) => this.setState({ hover })
 
-    getOffset = (el) => {
-        let _x = 0
-        let _y = 0
-        while (el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-            _x += el.offsetLeft - el.scrollLeft
-            _y += el.offsetTop - el.scrollTop
-            el = el.offsetParent
-        }
-        return { top: _y, left: _x }
-    }
-
     measure = (ref) => {
         const clientRect = ref.getBoundingClientRect()
-        const offset = this.getOffset(ref)
+        const offset = getOffset(ref)
         return {
             ...offset,
             x: offset.left,
@@ -156,11 +146,12 @@ class CPropertyConnector extends Component {
     }
 
     render() {
-        const { onMouseEnter, onMouseOut, onMouseDown, onMouseUp, onClick, innerRef, ...rest } = this.props
+        const { onMouseEnter, onMouseOut, onMouseDown, onMouseUp, onClick, innerRef, connections, ...rest } = this.props
         const { hover } = this.state
+        const hasConnections = !!connections && connections.length > 0
         return (
             <StyledPropertyConnectorWrapper {...rest} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp}>
-                <StyledPropertyConnector hover={hover} ref={(ref) => { this.ref = ref }} />
+                <StyledPropertyConnector hover={hover} ref={(ref) => { this.ref = ref }} connections={hasConnections} />
             </StyledPropertyConnectorWrapper>
         )
     }
@@ -175,6 +166,7 @@ export const PropertyConnector = connect(null, mapDispatch)(CPropertyConnector)
 export const PropertyElement = styled.div`
     padding: 0.5em 0;
     display: flex;
+    position: relative;
 `
 
 export default PropertyContainer
