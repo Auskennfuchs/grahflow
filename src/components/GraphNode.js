@@ -69,7 +69,7 @@ const propSize = (o) => Object.keys(o).length
 const mapProperties = (PropContainer) => (
     ({ properties, rightAlign, connectorRef = () => { }, parentId, onConnectorMouseDown = () => { } }) => (
         <PropContainer>
-            {mapObject(properties, ({ name, type, connections, ["default"]: defaultValue }, id) => (
+            {mapObject(properties, ({ name, type, connections, defaultValue }, id) => (
                 <PropertyElement key={id}>
                     {defaultValue !== undefined && (!connections || connections.length === 0) &&
                         <DefaultValueContainer>

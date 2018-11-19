@@ -11,9 +11,10 @@ import { setConnection, removeConnection } from '../redux/actions/connection'
 import { removeConnectors } from '../redux/actions/connectors'
 import NodeTypeSelector from '../components/NodeTypeSelector'
 import { onSelfClick, mapObject } from '../util/util'
-import NodeTypes from '../nodetypes'
 import { NodeComponents } from '../nodes'
-import SimpleInOut from '../nodes/SimpleInOut';
+import SimpleInOut from '../nodes/SimpleInOut'
+import FlowEngine from '../apis/FlowEngine'
+import { setNodeTypes } from '../redux/actions/types'
 
 const EditorWrapper = styled.div`
     height: 100%;
@@ -48,6 +49,7 @@ class GraphEditor extends Component {
     componentDidMount = () => {
         window.addEventListener('mouseup', this.onClickCanvas)
         document.body.addEventListener('keyup', this.onKeyPress)
+        this.loadNodeTypes()
     }
 
     componentWillMount = () => {
@@ -88,6 +90,11 @@ class GraphEditor extends Component {
         if (selNode) {
             this.props.updateNode(selNode)
         }
+    }
+
+    loadNodeTypes = async () => {
+        const types = await this.props.getNodeTypes();
+        this.props.setNodeTypes(types)
     }
 
     updateNodePosition = (id, { x, y }) => {
@@ -144,7 +151,7 @@ class GraphEditor extends Component {
     }
 
     addNode = ({ x, y }, type) => {
-        const typeTemplate = NodeTypes[NodeTypes.findIndex(n => n.type === type)]
+        const typeTemplate = this.props.NodeTypes[this.props.NodeTypes.findIndex(n => n.type === type)]
         if (typeTemplate) {
             const node = {
                 id: uuid(),
@@ -213,7 +220,7 @@ class GraphEditor extends Component {
     }
 }
 
-const mapState = ({ nodes }) => ({ nodes })
+const mapState = ({ nodes,types }) => ({ nodes,NodeTypes: types })
 
 const mapDispatch = (dispatch) => ({
     addNode: (node) => dispatch(addNode(node)),
@@ -224,6 +231,8 @@ const mapDispatch = (dispatch) => ({
         dispatch(deleteNode(node))
     },
     createConnection: (from, to) => dispatch(setConnection(from, to)),
+    getNodeTypes: () => FlowEngine.getTypes(),
+    setNodeTypes: (types) => dispatch(setNodeTypes(types))
 })
 
 export default connect(mapState, mapDispatch)(GraphEditor)

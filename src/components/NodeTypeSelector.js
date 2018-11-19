@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
-import NodeTypes from '../nodetypes'
+import {connect} from 'react-redux'
 
 const StyledContainer = styled.div`
     position: absolute;
@@ -26,17 +26,18 @@ const ListItem = styled.li`
     }
 `
 
-export default class NodeTypeSelector extends Component {
+class NodeTypeSelector extends Component {
     static defaultProps = {
-        onClick: () => { }
+        onClick: () => { },
+        types: []
     }
 
     render() {
-        const { onClick, ...rest } = this.props
+        const { onClick,types, ...rest } = this.props
         return (
             <StyledContainer {...rest}>
                 <ListContainer>
-                    {NodeTypes.map(node => (
+                    {types.map(node => (
                         <ListItem key={node.type} onClick={() => onClick(node.type)}>{node.name}</ListItem>
                     ))}
                 </ListContainer>
@@ -44,3 +45,9 @@ export default class NodeTypeSelector extends Component {
         )
     }
 }
+
+const mapState = ({types})=>({
+    types
+})
+
+export default connect(mapState)(NodeTypeSelector)
