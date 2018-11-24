@@ -1,4 +1,4 @@
-import { SET_CONNECTION, REMOVE_CONNECTION } from "../actions/connection"
+import { SET_CONNECTION, REMOVE_CONNECTION_NODE, REMOVE_CONNECTION } from "../actions/connection"
 import { mapObject } from "../../util/util";
 
 const initialState = {}
@@ -9,21 +9,22 @@ export default (state = initialState, action = {}) => {
             const { from, to } = action
             return {
                 ...state,
-                [`${from}|${to}`]: { from, to },
+                [from]: to,
             }
-        case REMOVE_CONNECTION: {
+        case REMOVE_CONNECTION_NODE: {
             let newState = { ...state }
-            mapObject(action.node.properties, (propList, key) => {
-                mapObject(propList, (_, pKey) => {
-                    const id = `${action.node.id}.${key}.${pKey}`
-                    mapObject(newState,(_,key)=>{
-                        if(key.includes(id)) {
-                            delete newState[key]
-                        }
-                    })
-                })
+            const { id } = action.node
+            mapObject(newState, (to, from) => {
+                if (to.startsWith(id) || from.startsWith(id)) {
+                    delete newState[from]
+                }
             })
             return newState
+        }
+
+        case REMOVE_CONNECTION: {
+            const { [action.from]: deleteCon, ...rest } = state
+            return rest
         }
 
         default:

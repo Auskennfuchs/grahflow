@@ -1,5 +1,4 @@
 import { ADD_NODE, UPDATE_NODE, DELETE_NODE } from "../actions/nodes"
-import { mapObject } from "../../util/util"
 
 const initialState = {}
 
@@ -17,13 +16,6 @@ export default (state = initialState, action = {}) => {
             }
         }
         case DELETE_NODE: {
-            mapObject(state, (node) => {
-                mapObject(node.properties, (propList) => {
-                    mapObject(propList, (prop) => {
-                        prop.connections = (prop.connections || []).filter(p => !p.includes(action.node.id))
-                    })
-                })
-            })
             const { [action.node.id]: deleteNode, ...rest } = state
             return rest
         }

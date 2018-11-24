@@ -12,7 +12,7 @@ const StyledPath = styled.path`
     }
 `
 
-const Line = ({ start, end, color = "rgb(0,0,0)" }) => {
+const Line = ({ start, end, color = "rgb(0,0,0)",...rest }) => {
     const x1 = start.x
     const y1 = start.y
     const x4 = end.x
@@ -22,7 +22,7 @@ const Line = ({ start, end, color = "rgb(0,0,0)" }) => {
     const xe = x4 - 25
 
     return (
-        <StyledPath d={`M${x1} ${y1} ${xs} ${y1} ${xe} ${y4} ${x4} ${y4}`} color={color} />
+        <StyledPath d={`M${x1} ${y1} ${xs} ${y1} ${xe} ${y4} ${x4} ${y4}`} color={color} {...rest}/>
     )
 }
 

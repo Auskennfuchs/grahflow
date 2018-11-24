@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import styled, { css } from 'styled-components'
+import { connect } from 'react-redux'
 import PropertyContainer, { PropertyElement, PropertyConnector, InputPropertyContainer, OutputPropertyContainer } from './PropertyContainer'
 import { mapObject } from '../util/util'
 
@@ -66,19 +67,32 @@ const DefaultValueContainer = styled.div`
 
 const propSize = (o) => Object.keys(o).length
 
+const hasConnection = (id, connections) => {
+    let isConnectedOutput = false
+    mapObject(connections, (out) => {
+        if (out === id) {
+            isConnectedOutput = true
+        }
+    })
+    return !!connections[id] || isConnectedOutput
+}
+
+
 const mapProperties = (PropContainer) => (
-    ({ properties, rightAlign, connectorRef = () => { }, parentId, onConnectorMouseDown = () => { } }) => (
+    ({ properties, rightAlign, connectorRef = () => { }, parentId, onConnectorMouseDown = () => { }, onExpose = () => { }, connections = {} }) => (
         <PropContainer>
-            {mapObject(properties, ({ name, type, connections, defaultValue }, id) => (
+            {mapObject(properties, ({ name, type, defaultValue }, id) => (
                 <PropertyElement key={id}>
-                    {defaultValue !== undefined && (!connections || connections.length === 0) &&
+                    {defaultValue !== undefined && !hasConnection(`${parentId}.${id}`, connections) &&
                         <DefaultValueContainer>
                             {defaultValue}
                         </DefaultValueContainer>
                     }
-                    {!rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} connections={connections} />}
+                    {!rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} />}
+                    {rightAlign && <button onClick={() => onExpose(`${parentId}.${id}`)}>E</button>}
                     <span>{name}({type})</span>
-                    {rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} connections={connections} />}
+                    {!rightAlign && <button onClick={() => onExpose(`${parentId}.${id}`)}>E</button>}
+                    {rightAlign && <PropertyConnector innerRef={(elem) => connectorRef(id, elem)} id={`${parentId}.${id}.connector`} onMouseDown={() => onConnectorMouseDown(`${parentId}.${id}`)} />}
                 </PropertyElement>
             ))}
         </PropContainer>
@@ -88,7 +102,7 @@ const mapProperties = (PropContainer) => (
 const InputProps = mapProperties(InputPropertyContainer)
 const OutputProps = mapProperties(OutputPropertyContainer)
 
-export default class GraphNode extends Component {
+class GraphNode extends Component {
 
     static defaultProps = {
         onClick: () => { }
@@ -109,7 +123,7 @@ export default class GraphNode extends Component {
     }
 
     render() {
-        const { active, children, element, id, onClick, onConnectorMouseDown, onConnectorMouseUp, ...rest } = this.props
+        const { active, children, element, id, onClick, onConnectorMouseDown, onConnectorMouseUp, onExpose, connections, ...rest } = this.props
         const { hover } = this.state
         const { input, output } = element.properties
         return (
@@ -119,10 +133,10 @@ export default class GraphNode extends Component {
                     <Title>{element.name}</Title>
                     <PropertyContainer>
                         {input && propSize(input) > 0 &&
-                            <InputProps properties={input} parentId={`${id}.input`} onConnectorMouseDown={onConnectorMouseDown} />
+                            <InputProps properties={input} parentId={`${id}.input`} onConnectorMouseDown={onConnectorMouseDown} onExpose={onExpose} connections={connections} />
                         }
                         {output && propSize(output) > 0 &&
-                            <OutputProps properties={output} rightAlign parentId={`${id}.output`} onConnectorMouseDown={onConnectorMouseDown} />
+                            <OutputProps properties={output} rightAlign parentId={`${id}.output`} onConnectorMouseDown={onConnectorMouseDown} onExpose={onExpose} connections={connections} />
                         }
                     </PropertyContainer>
                     {children &&
@@ -135,3 +149,7 @@ export default class GraphNode extends Component {
         )
     }
 }
+
+const mapState = ({ connections }) => ({ connections })
+
+export default connect(mapState)(GraphNode)

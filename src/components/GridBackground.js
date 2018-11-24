@@ -2,8 +2,16 @@ import styled from 'styled-components'
 
 const GridBackground = styled.div`
     background-color: transparent;
-    background-image:       linear-gradient(0deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent), 
-                            linear-gradient(90deg, transparent 24%, rgba(255, 255, 255, .05) 25%, rgba(255, 255, 255, .05) 26%, transparent 27%, transparent 74%, rgba(255, 255, 255, .05) 75%, rgba(255, 255, 255, .05) 76%, transparent 77%, transparent);                            
+    background-image:       linear-gradient(0deg, 
+                                rgba(255, 255, 255, .05) 0%, rgba(255, 255, 255, .05) 1%, 
+                                transparent 2%, transparent 49%, 
+                                rgba(255, 255, 255, .05) 50%, rgba(255, 255, 255, .05) 51%, 
+                                transparent 52%, transparent), 
+                            linear-gradient(90deg, 
+                                rgba(255, 255, 255, .05) 0%, rgba(255, 255, 255, .05) 1%, 
+                                transparent 2%, transparent 49%, 
+                                rgba(255, 255, 255, .05) 50%, rgba(255, 255, 255, .05) 51%, 
+                                transparent 52%, transparent);
     background-size:50px 50px;
     position: absolute;
     left: 0;

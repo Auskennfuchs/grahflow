@@ -7,7 +7,7 @@ import GridBackground from '../components/GridBackground'
 import Draggable from '../components/Draggable'
 import LineContainer from '../elements/LineContainer'
 import { addNode, updateNode, deleteNode } from '../redux/actions/nodes'
-import { setConnection, removeConnection } from '../redux/actions/connection'
+import { setConnection, removeConnection, removeConnectionNode } from '../redux/actions/connection'
 import { removeConnectors } from '../redux/actions/connectors'
 import NodeTypeSelector from '../components/NodeTypeSelector'
 import { onSelfClick, mapObject } from '../util/util'
@@ -15,11 +15,12 @@ import { NodeComponents } from '../nodes'
 import SimpleInOut from '../nodes/SimpleInOut'
 import FlowEngine from '../apis/FlowEngine'
 import { setNodeTypes } from '../redux/actions/types'
+import { setInputExpose, setOutputExpose, removeOutputExpose, removeInputExpose } from '../redux/actions/expose';
 
 const EditorWrapper = styled.div`
-    height: 100%;
+    max-height: 100%;
+    max-width: 100%;
     overflow: auto;
-    width: 100%;
 `
 
 const EditorContainer = styled.div`
@@ -99,9 +100,10 @@ class GraphEditor extends Component {
 
     updateNodePosition = (id, { x, y }) => {
         const selNode = this.findNode(id)
+        const gridSize=25
         if (selNode) {
-            selNode.x = x//Math.floor(e.x / 25) * 25
-            selNode.y = y//Math.floor(e.y / 25) * 25
+            selNode.x = Math.round(x / gridSize) * gridSize
+            selNode.y = Math.round(y / gridSize) * gridSize
         }
         return selNode
     }
@@ -109,10 +111,10 @@ class GraphEditor extends Component {
     onConnectorMouseDown = (id) => {
         const { connection } = this.state
         if (id.includes(".input.")) {
-            connection.end = id
+            connection.start = id
         }
         if (id.includes(".output.")) {
-            connection.start = id
+            connection.end = id
         }
         if (!connection.start || !connection.end) {
             this.setState({ connection })
@@ -137,6 +139,24 @@ class GraphEditor extends Component {
         }
     }
 
+    onExpose = (id) => {
+        if (id.includes(".input.")) {
+            this.props.exposeInput({
+                id, value: "", name: id
+            })
+        }
+        if (id.includes(".output.")) {
+            this.props.exposeOutput({
+                id, value: "", name: id
+            })
+        }
+    }
+
+    onConnectionClick = ({ toId }) => {
+        this.props.removeConnection(toId)
+
+    }
+
     renderElement = (element) => {
         const { selected } = this.state
         const { id, x, y } = element
@@ -145,7 +165,8 @@ class GraphEditor extends Component {
             <Draggable key={id} initialPos={{ x, y }} onDragMove={(e) => this.onDragMove(id, e)} onDragEnd={(e) => this.onDragEnd(id, e)} style={{
                 zIndex: selected === id ? 10 : 0,
             }}>
-                <TagName active={selected === id} id={id} onMouseDown={() => this.onSelectElement(id)} element={element} onConnectorMouseDown={this.onConnectorMouseDown} />
+                <TagName active={selected === id} id={id} onMouseDown={() => this.onSelectElement(id)} element={element}
+                    onConnectorMouseDown={this.onConnectorMouseDown} onExpose={this.onExpose} />
             </Draggable>
         )
     }
@@ -175,19 +196,6 @@ class GraphEditor extends Component {
     }
 
     addConnection = (connection) => {
-        const start = this.splitId(connection.start)
-        const end = this.splitId(connection.end)
-
-        const nodeStart = this.findNode(start.node)
-        const nodeEnd = this.findNode(end.node)
-        console.log(nodeStart.properties[start.group][start.connector])
-        nodeStart.properties[start.group][start.connector].connections = [
-            ...nodeStart.properties[start.group][start.connector].connections || [],
-            connection.end
-        ]
-        nodeEnd.properties[end.group][end.connector].connections = [connection.start]
-        this.props.updateNode(nodeStart)
-        this.props.updateNode(nodeEnd)
         this.props.createConnection(connection.start, connection.end)
     }
 
@@ -208,7 +216,7 @@ class GraphEditor extends Component {
                 <EditorContainer style={{ width: "3000px", height: "2000px" }}>
                     <GridBackground />
                     <EditorCanvas onClick={this.onClickCanvas}>
-                        <LineContainer onClick={onSelfClick(this.onShowTypeSelector)} />
+                        <LineContainer onClick={onSelfClick(this.onShowTypeSelector)} onLineClick={this.onConnectionClick} />
                         {mapObject(nodes, (node => this.renderElement(node)))}
                     </EditorCanvas>
                     {showAddDialog &&
@@ -220,19 +228,24 @@ class GraphEditor extends Component {
     }
 }
 
-const mapState = ({ nodes,types }) => ({ nodes,NodeTypes: types })
+const mapState = ({ nodes, types, exposes }) => ({ nodes, NodeTypes: types, exposes })
 
 const mapDispatch = (dispatch) => ({
     addNode: (node) => dispatch(addNode(node)),
     updateNode: (node) => dispatch(updateNode(node)),
     deleteNode: (node) => {
-        dispatch(removeConnection(node))
+        dispatch(removeConnectionNode(node))
         dispatch(removeConnectors(node))
         dispatch(deleteNode(node))
+        dispatch(removeOutputExpose(node.id))
+        dispatch(removeInputExpose(node.id))
     },
     createConnection: (from, to) => dispatch(setConnection(from, to)),
+    removeConnection: (con) => dispatch(removeConnection(con)),
     getNodeTypes: () => FlowEngine.getTypes(),
-    setNodeTypes: (types) => dispatch(setNodeTypes(types))
+    setNodeTypes: (types) => dispatch(setNodeTypes(types)),
+    exposeInput: (prop) => dispatch(setInputExpose(prop)),
+    exposeOutput: (prop) => dispatch(setOutputExpose(prop)),
 })
 
 export default connect(mapState, mapDispatch)(GraphEditor)

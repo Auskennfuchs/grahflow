@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components'
 import isEqual from 'lodash/isEqualWith'
 import { connect } from 'react-redux'
 import { setConnector } from '../redux/actions/connectors';
-import { getOffset } from '../util/util';
+import { getOffset, mapObject } from '../util/util';
 
 const PropertyContainer = styled.div`
     display: flex;
@@ -43,7 +43,7 @@ const StyledPropertyConnector = styled.div`
     position: relative;
     box-sizing:content-box;
 
-    ${({ hover, connections }) => (hover || connections) ? css`&:after {
+    ${({ hover, connection }) => (hover || connection) ? css`&:after {
         content: '';
         position: absolute;
         width: 6px;
@@ -145,13 +145,25 @@ class CPropertyConnector extends Component {
         setConnector({ id, bounds })
     }
 
+    hasConnection = () => {
+        const {connections,id} = this.props
+        const propId = id.replace(".connector","")
+        let isConnectedOutput = false
+        mapObject(connections,(out)=>{
+            if(out===propId) {
+                isConnectedOutput=true
+            }
+        })
+        return !!connections[propId] || isConnectedOutput
+    }
+
     render() {
-        const { onMouseEnter, onMouseOut, onMouseDown, onMouseUp, onClick, innerRef, connections, ...rest } = this.props
+        const { onMouseEnter, onMouseOut, onMouseDown, onMouseUp, onClick, innerRef, ...rest } = this.props
         const { hover } = this.state
-        const hasConnections = !!connections && connections.length > 0
+        const hasConnection = this.hasConnection()
         return (
             <StyledPropertyConnectorWrapper {...rest} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick} onMouseDown={this.onMouseDown} onMouseUp={this.onMouseUp}>
-                <StyledPropertyConnector hover={hover} ref={(ref) => { this.ref = ref }} connections={hasConnections} />
+                <StyledPropertyConnector hover={hover} ref={(ref) => { this.ref = ref }} connection={hasConnection} />
             </StyledPropertyConnectorWrapper>
         )
     }
@@ -161,7 +173,9 @@ const mapDispatch = (dispatch) => ({
     setConnector: (data) => dispatch(setConnector(data))
 })
 
-export const PropertyConnector = connect(null, mapDispatch)(CPropertyConnector)
+const mapState = ({connections})=>({connections})
+
+export const PropertyConnector = connect(mapState, mapDispatch)(CPropertyConnector)
 
 export const PropertyElement = styled.div`
     padding: 0.5em 0;

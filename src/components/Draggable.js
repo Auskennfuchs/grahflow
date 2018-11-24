@@ -70,7 +70,7 @@ export default class Draggable extends Component {
         })
         e.stopPropagation()
         e.preventDefault()
-        this.debouncedMouseMove(pos)
+//        this.debouncedMouseMove(pos)
     }
 
     render() {
