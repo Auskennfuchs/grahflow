@@ -35,15 +35,17 @@ export default class Draggable extends Component {
     onMouseDown = (e) => {
         // only left mouse button
         if (e.button !== 0) return
+        const { canvas } = this.props
+        const node = ReactDOM.findDOMNode(this)
         var pos = {
-            left: ReactDOM.findDOMNode(this).offsetLeft,
-            top: ReactDOM.findDOMNode(this).offsetTop,
+            left: node.offsetLeft,
+            top: node.offsetTop,
         }
         this.setState({
             dragging: true,
             rel: {
-                x: e.pageX - pos.left,
-                y: e.pageY - pos.top
+                x: (e.pageX/canvas.zoom - pos.left) + canvas.x,
+                y: (e.pageY/canvas.zoom - pos.top) + canvas.y,
             }
         })
         e.stopPropagation()
@@ -61,20 +63,20 @@ export default class Draggable extends Component {
 
     onMouseMove = (e) => {
         if (!this.state.dragging) return
+        const { canvas } = this.props
         const pos = {
-            x: e.pageX - this.state.rel.x,
-            y: e.pageY - this.state.rel.y
+            x: (e.pageX/canvas.zoom - this.state.rel.x) + canvas.x,
+            y: (e.pageY/canvas.zoom - this.state.rel.y) + canvas.y,
         }
         this.setState({
             pos
         })
         e.stopPropagation()
         e.preventDefault()
-//        this.debouncedMouseMove(pos)
     }
 
     render() {
-        const { onMouseDown, onDragEnd, onDragMove, children, initialPos, style, ref, ...rest } = this.props
+        const { onMouseDown, onDragEnd, onDragMove, children, initialPos, style, canvas, ref, ...rest } = this.props
         return (
             <div style={{
                 ...style,

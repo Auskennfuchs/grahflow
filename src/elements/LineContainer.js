@@ -31,7 +31,7 @@ class LineContainer extends Component {
         }
     }
 
-    drawLine = (fromId, toId, id, onClick = () => { }) => {
+    drawLine = (fromId, toId, id,zoom, onClick = () => { }) => {
         const { connectors } = this.props
         const from = connectors[`${fromId}.connector`]
         const to = connectors[`${toId}.connector`]
@@ -39,18 +39,18 @@ class LineContainer extends Component {
             const start = this.calcCenter(from)
             const end = this.calcCenter(to)
             return (
-                <Line key={id} start={start} end={end} color="rgb(241,250,151)" onClick={() => onClick({ fromId, toId })} />
+                <Line key={id} start={start} end={end} color="rgb(241,250,151)" onClick={() => onClick({ fromId, toId })}/>
             )
         }
         return null
     }
 
     render() {
-        const { connections, children, onLineClick, ...rest } = this.props
+        const { connections, children, onLineClick,zoom, ...rest } = this.props
         return (
             <StyledLineContainer {...rest}>
                 {mapObject(connections, (from,to) => (
-                    this.drawLine(from, to, to, onLineClick)
+                    this.drawLine(from, to, to,zoom, onLineClick)
                 ))}
                 {children}
             </StyledLineContainer>

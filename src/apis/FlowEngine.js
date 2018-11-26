@@ -6,7 +6,7 @@ const FlowEngine = {
             const res = await Axios.get("/calc/flow/v1/types")
             return res.data
         } catch (err) {
-            return err.response
+            return []
         }
     },
     runGraph: async (data)=>{
